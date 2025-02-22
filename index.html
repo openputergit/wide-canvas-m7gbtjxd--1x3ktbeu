@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jarvis AI Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #1a1a1a;
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .response-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-blue-400 mb-2">JARVIS</h1>
+                <p class="text-gray-400">Your Personal AI Assistant</p>
+            </div>
+
+            <div class="bg-gray-700 rounded-lg p-4 mb-6 response-container">
+                <div id="response" class="text-gray-200">
+                    Waiting for your command...
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center gap-4">
+                <button id="startBtn" class="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-4 w-16 h-16 flex items-center justify-center pulse">
+                    <i class="bi bi-mic-fill text-2xl"></i>
+                </button>
+                <p id="status" class="text-gray-400">Click to start speaking</p>
+            </div>
+
+            <div class="mt-6 grid grid-cols-2 gap-4">
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <h3 class="text-blue-400 font-semibold mb-2">Goals</h3>
+                    <ul id="goals" class="text-gray-300 text-sm list-disc pl-4"></ul>
+                </div>
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <h3 class="text-blue-400 font-semibold mb-2">Routine</h3>
+                    <ul id="routine" class="text-gray-300 text-sm list-disc pl-4"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let recognition;
+        const startBtn = document.getElementById('startBtn');
+        const status = document.getElementById('status');
+        const response = document.getElementById('response');
+        const goals = document.getElementById('goals');
+        const routine = document.getElementById('routine');
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                status.textContent = 'Listening...';
+                startBtn.classList.add('bg-red-500');
+                startBtn.classList.remove('bg-blue-500');
+            };
+
+            recognition.onend = () => {
+                status.textContent = 'Click to start speaking';
+                startBtn.classList.remove('bg-red-500');
+                startBtn.classList.add('bg-blue-500');
+            };
+
+            recognition.onresult = (event) => {
+                const command = event.results[0][0].transcript.toLowerCase();
+                processCommand(command);
+            };
+
+            recognition.onerror = (event) => {
+                status.textContent = 'Error occurred. Please try again.';
+                console.error(event.error);
+            };
+        }
+
+        function processCommand(command) {
+            response.innerHTML = `Command received: "${command}"<br><br>`;
+
+            if (command.includes('add goal')) {
+                const goal = command.replace('add goal', '').trim();
+                const li = document.createElement('li');
+                li.textContent = goal;
+                goals.appendChild(li);
+                response.innerHTML += "Goal added successfully!";
+            } else if (command.includes('add routine')) {
+                const routineItem = command.replace('add routine', '').trim();
+                const li = document.createElement('li');
+                li.textContent = routineItem;
+                routine.appendChild(li);
+                response.innerHTML += "Routine item added successfully!";
+            } else {
+                response.innerHTML += "Sorry, I didn't understand that command. Try saying 'add goal' or 'add routine' followed by your item.";
+            }
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (recognition) {
+                recognition.start();
+            } else {
+                status.textContent = 'Speech recognition not supported in this browser.';
+            }
+        });
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
